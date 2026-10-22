@@ -226,53 +226,55 @@ function finishPlacement(){
  if(scores[4].correct<2&&result==="C1")result="B2";
  r.placement={level:result,scores,date:dateKey()};save();renderRoute()
 }
+
+const drillData={"A1-0":[["I ___ happy today.","am",["is","are"],"I am happy today."],["He ___ an engineer.","is",["am","are"],"He is an engineer."],["They ___ at home.","are",["am","is"],"They are at home."],["We ___ ready.","are",["is","am"],"We are ready."]],"A1-1":[["She ___ every morning.","runs",["run","running"],"She runs every morning."],["I ___ coffee every day.","drink",["drinks","drinking"],"I drink coffee every day."],["He ___ in a factory.","works",["work","working"],"He works in a factory."],["They ___ English after work.","study",["studies","studying"],"They study English after work."]],"A1-2":[["I bought ___ apple.","an",["a","the"],"I bought an apple."],["There ___ three sensors.","are",["is","am"],"There are three sensors."],["I saw ___ cat yesterday.","a",["an","are"],"I saw a cat yesterday."],["She has two ___.","books",["book","bookes"],"She has two books."]],"A2-0":[["We ___ dinner yesterday.","cooked",["cook","cooking"],"We cooked dinner yesterday."],["She ___ to work last Monday.","went",["go","goes"],"She went to work last Monday."],["I ___ my friend yesterday.","met",["meet","meeted"],"I met my friend yesterday."],["They ___ the machine last week.","fixed",["fix","fixing"],"They fixed the machine last week."]],"A2-1":[["I am going ___ study tonight.","to",["for","at"],"I am going to study tonight."],["She ___ visit her family tomorrow.","will",["was","did"],"She will visit her family tomorrow."],["We are ___ to travel next month.","going",["go","went"],"We are going to travel next month."],["I ___ call you later.","will",["was","have"],"I will call you later."]],"A2-2":[["This road is ___ than that one.","longer",["long","longest"],"This road is longer than that one."],["He stayed home ___ he was tired.","because",["although","but"],"He stayed home because he was tired."],["This phone is ___ expensive.","more",["most","much"],"This phone is more expensive."],["She runs ___ than me.","faster",["fast","fastest"],"She runs faster than me."]],"B1-0":[["I have lived here ___ 2020.","since",["for","during"],"I have lived here since 2020."],["She has worked here ___ five years.","for",["since","at"],"She has worked here for five years."],["We have ___ the job.","finished",["finish","finishing"],"We have finished the job."],["I have never ___ to London.","been",["be","was"],"I have never been to London."]],"B1-1":[["If I am free, I ___ call you.","will",["would","did"],"If I am free, I will call you."],["If it rains, we will ___ home.","stay",["stayed","staying"],"If it rains, we will stay home."],["If you study, you ___ improve.","will",["would","was"],"If you study, you will improve."],["If she comes, I ___ tell her.","will",["have","did"],"If she comes, I will tell her."]],"B1-2":[["The motor ___ repaired yesterday.","was",["is","were"],"The motor was repaired yesterday."],["I showed him how ___ start it.","to",["for","do"],"I showed him how to start it."],["The sensors ___ replaced last week.","were",["was","are"],"The sensors were replaced last week."],["She explained the issue ___ me.","to",["for","at"],"She explained the issue to me."]],"B2-0":[["If I ___ rich, I would travel.","were",["am","will"],"If I were rich, I would travel."],["If we had more time, we ___ visit you.","would",["will","did"],"If we had more time, we would visit you."],["If he ___ harder, he would succeed.","studied",["studies","study"],"If he studied harder, he would succeed."],["I would buy it if it ___ cheaper.","were",["is","will"],"I would buy it if it were cheaper."]],"B2-1":[["She had ___ before I arrived.","left",["leave","leaving"],"She had left before I arrived."],["By noon, we had ___ the work.","finished",["finish","finishing"],"By noon, we had finished the work."],["He ___ already eaten when I called.","had",["has","have"],"He had already eaten when I called."],["They had ___ the problem before lunch.","solved",["solve","solving"],"They had solved the problem before lunch."]],"B2-2":[["___ it was raining, we went out.","Although",["Despite","Because"],"Although it was raining, we went out."],["Despite ___ tired, he worked.","being",["was","be"],"Despite being tired, he worked."],["It was expensive; ___, I bought it.","however",["because","although"],"It was expensive; however, I bought it."],["She went out ___ the cold weather.","despite",["although","because"],"She went out despite the cold weather."]],"C1-0":[["Rarely ___ I seen such a view.","have",["has","am"],"Rarely have I seen such a view."],["Hardly ___ we started when it rained.","had",["did","have"],"Hardly had we started when it rained."],["Never ___ she spoken so clearly.","has",["have","did"],"Never has she spoken so clearly."],["Not only ___ he help, he also stayed late.","did",["had","was"],"Not only did he help, he also stayed late."]],"C1-1":[["Had I known, I ___ have helped.","would",["will","had"],"Had I known, I would have helped."],["If she had called, we ___ have waited.","would",["will","did"],"If she had called, we would have waited."],["Had they left earlier, they ___ have arrived on time.","would",["will","have"],"Had they left earlier, they would have arrived on time."],["If I had studied, I would ___ passed.","have",["had","has"],"If I had studied, I would have passed."]],"C1-2":[["The engineer ___ design I liked was hired.","whose",["which","whom"],"The engineer whose design I liked was hired."],["She prefers tea, ___ I prefer coffee.","whereas",["because","unless"],"She prefers tea, whereas I prefer coffee."],["The plan is risky; ___, it may work.","nevertheless",["because","unless"],"The plan is risky; nevertheless, it may work."],["This is the colleague ___ advice I trust.","whose",["which","whom"],"This is the colleague whose advice I trust."]]};
+function lessonDrills(item){
+ const data=drillData[item.level+"-"+item.index]||[];
+ let tasks=[];
+ for(let j=0;j<data.length;j++){
+  const x=data[j],options=[x[1],...x[2]];
+  const rotated=[...options.slice(j%3),...options.slice(0,j%3)];
+  tasks.push({kind:"choice",label:"Doğru seç",q:x[0],o:rotated,correct:rotated.indexOf(x[1]),answer:x[3],lesson: item.u[1]});
+  tasks.push({kind:"cloze",label:"Hatırla",q:x[0],answer:x[1],example:x[3],lesson:item.u[1]});
+ }
+ tasks.push({kind:"writing",label:"Cümle üret",q:"Bu konuyla ilgili günlük hayatından bir İngilizce cümle yaz.",answer:item.u[2]});
+ tasks.push({kind:"speaking",label:"Sesli konuş",q:item.u[6],answer:item.u[2]});
+ return tasks
+}
+
 function renderUnit(){
  const r=state.road,item=currentRoadUnit();if(!item){r.currentUnit=null;save();renderRoute();return}
- const u=item.u,key=item.id;
- r.unitState=r.unitState||{};let progress=r.unitState[key]||{phase:0,correct:0,tries:0,checked:false,choice:-1};
- const phases=[
- {kind:"lesson",label:"Öğren",q:u[1]},
- {kind:"choice",label:"Anla",q:u[3]},
- {kind:"cloze",label:"Hatırla",q:u[3]},
- {kind:"recall",label:"Yaz",q:"Örneği hafızandan yaz: "+u[0]},
- {kind:"speaking",label:"Konuş",q:u[6]}
- ];
- const step=phases[Math.min(progress.phase,phases.length-1)];
- const completed=progress.phase>=phases.length;
- let html='<div class="line"><span class="tag">'+item.level+' · '+escapeHTML(step.label)+'</span><button class="secondary" id="exitUnit">← Yolum</button></div><h2 style="margin-top:16px">'+escapeHTML(u[0])+'</h2><div class="progress" aria-label="Ünite ilerlemesi"><div style="width:'+Math.round(progress.phase/phases.length*100)+'%"></div></div>';
- if(completed){
-  html+='<div class="notice"><h2>Ünite tamamlandı</h2><p>Kontrol edilen cevaplarda '+progress.correct+' başarılı adım. Yazma ve konuşma cevaplarını kendin değerlendirdin; bu henüz bağımsız dil yeterliliği kanıtı değil.</p><p>Konuyu başka gün farklı cümlelerde tekrar edeceğiz.</p></div><button class="primary" id="closeUnit">Öğrenme yoluna dön</button>';
- }else if(step.kind==="lesson"){
-  html+='<div class="notice"><b>30 saniyelik kural</b><p>'+escapeHTML(u[1])+'</p><p>✅ '+escapeHTML(u[2])+'</p><small>Örneği önce sesli oku. Ardından ipucusuz alıştırmalara geç.</small></div><button class="primary" id="nextUnitStep">Anladım, pratiğe geç →</button>';
- }else{
-  html+='<p class="big">'+escapeHTML(step.q)+'</p>';
-  if(step.kind==="choice")html+='<div class="choices">'+u[4].map((x,i)=>'<button class="unitChoice" data-i="'+i+'">'+escapeHTML(x)+'</button>').join("")+'</div>';
-  else html+='<textarea id="unitAnswer" placeholder="'+(step.kind==="cloze"?"Yalnızca eksik kelimeyi yaz...":"İngilizce cevabını kendin oluştur...")+'"></textarea>';
-  if(step.kind==="speaking")html+='<p class="muted mini">Önce yüksek sesle kendi cümleni kur, ardından yaz. Mikrofon zorunlu değil.</p>';
-  if(!progress.checked)html+='<button class="primary" id="checkUnit" style="width:100%;margin-top:14px">Cevabımı kontrol et</button>';
-  html+='<div id="unitFeedback"></div>';
- }
+ const key=item.id,u=item.u;r.unitState=r.unitState||{};
+ let p=r.unitState[key]||{phase:0,correct:0,tries:0};
+ const drills=lessonDrills(item),total=drills.length,completed=p.phase>total;
+ let current=p.phase===0?{kind:"lesson",label:"Mini ders"}:drills[Math.min(p.phase-1,total-1)];
+ let html='<div class="line"><span class="tag">'+item.level+' · '+escapeHTML(current.label)+'</span><button class="secondary" id="exitUnit">← Yolum</button></div><h2 style="margin-top:15px">'+escapeHTML(u[0])+'</h2><div class="line"><span class="mini muted">Adım '+Math.min(p.phase,total)+' / '+total+'</span><span class="mini muted">İstersen ara verebilirsin</span></div><div class="progress" style="margin:12px 0"><div style="width:'+Math.round(100*Math.min(p.phase,total)/total)+'%"></div></div>';
+ if(completed){html+='<div class="notice"><b>Bu ünite tamamlandı.</b><p>'+p.correct+' kontrollü alıştırma doğru cevaplandı. Konuyu sonraki günlerde tekrar edeceğiz.</p></div><button class="primary" id="finishUnit">Yoluma dön</button>'}
+ else if(p.phase===0){html+='<div class="notice"><b>Öğren</b><p>'+escapeHTML(u[1])+'</p><p>✅ '+escapeHTML(u[2])+'</p><p class="mini">Ardından 8 farklı kontrollü soru ve 2 üretim görevi seni bekliyor. Her gün birazını yapabilirsin.</p></div><button class="primary" id="advanceUnit">Pratiğe başla →</button>'}
+ else{html+='<p class="big">'+escapeHTML(current.q)+'</p>';
+ if(current.kind==="choice")html+='<div class="choices">'+current.o.map((x,i)=>'<button class="unitPick" data-i="'+i+'">'+escapeHTML(x)+'</button>').join("")+'</div>';
+ else html+='<textarea id="unitInput" placeholder="'+(current.kind==="cloze"?"Eksik kelime":"İngilizce cümleni yaz")+'"></textarea>';
+ if(current.kind==="speaking")html+='<p class="muted mini">Önce sesli söyle. Mikrofon zorunlu değil; dilersen konuştuğunu yaz.</p>';
+ html+='<div class="actions"><button class="primary" id="checkUnit">Cevabı kontrol et</button><button class="secondary" id="showHint">💡 Kısa ipucu</button></div><div id="unitResponse"></div>'}
  $("main").innerHTML=html;
+ const next=(correct)=>{if(correct){p.correct++;state.xp+=10}else state.xp+=5;p.phase++;r.unitState[key]=p;state.done++;if(p.phase>total){r.finishedUnits[key]=(r.finishedUnits[key]||0)+1;state.history.unshift({when:new Date().toLocaleString("tr-TR"),type:"unit",question:u[0],correct:p.correct>=6})}save();renderUnit()};
  $("exitUnit").onclick=()=>{r.currentUnit=null;save();renderRoute()};
- if(completed){$("closeUnit").onclick=()=>{r.currentUnit=null;delete r.unitState[key];save();renderRoute()};return}
- const goNext=(earned)=>{progress.correct+=earned?1:0;progress.phase++;progress.checked=false;progress.choice=-1;r.unitState[key]=progress;r.practiceIndex=progress.phase;state.done++;if(progress.phase>=phases.length){r.finishedUnits[key]=(r.finishedUnits[key]||0)+1;state.history.unshift({when:new Date().toLocaleString("tr-TR"),type:"unit",question:u[0],correct:progress.correct>=3,help:false})}save();renderUnit()};
- if(step.kind==="lesson"){$("nextUnitStep").onclick=()=>goNext(false);return}
- let picked=-1;document.querySelectorAll(".unitChoice").forEach(b=>b.onclick=()=>{picked=Number(b.dataset.i);document.querySelectorAll(".unitChoice").forEach(x=>x.classList.toggle("active",x===b))});
+ if(completed){$("finishUnit").onclick=()=>{r.currentUnit=null;delete r.unitState[key];save();renderRoute()};return}
+ if(p.phase===0){$("advanceUnit").onclick=()=>{p.phase=1;r.unitState[key]=p;save();renderUnit()};return}
+ let selected=-1,hintUsed=false;document.querySelectorAll(".unitPick").forEach(b=>b.onclick=()=>{selected=Number(b.dataset.i);document.querySelectorAll(".unitPick").forEach(x=>x.classList.toggle("active",x===b))});
+ $("showHint").onclick=()=>{hintUsed=true;$("unitResponse").innerHTML='<div class="notice warn">'+escapeHTML(u[1])+'</div>'};
  $("checkUnit").onclick=()=>{
-  if(step.kind==="choice"&&picked<0){$("unitFeedback").textContent="Önce seçenek seç.";return}
-  const answer=step.kind==="choice"?u[4][picked]:$("unitAnswer").value.trim();
-  if(!answer){$("unitFeedback").textContent="Önce cevabını yaz.";return}
-  progress.tries++;let feedback=$("unitFeedback");
-  if(step.kind==="choice"||step.kind==="cloze"){
-   let correct=step.kind==="choice"?picked===u[5]:norm(answer)===norm(u[4][u[5]]);
-   if(!correct){feedback.innerHTML='<div class="notice warn"><b>Bir kez daha dene.</b><p>Kural: '+escapeHTML(u[1])+'</p><p class="mini">Hata yaptığın için bu adım otomatik tamamlanmaz.</p></div>';state.history.unshift({when:new Date().toLocaleString("tr-TR"),type:"unit-mistake",question:step.q,answer,correct:false,help:false});save();return}
-   feedback.innerHTML='<div class="notice"><b>Doğru!</b><p>'+escapeHTML(u[2])+'</p></div><button class="primary" id="advanceUnit">Devam et →</button>';
-   $("checkUnit").disabled=true;$("advanceUnit").onclick=()=>{state.xp+=10;goNext(true)};return
-  }
-  feedback.innerHTML='<div class="notice"><b>Örnek:</b><p>'+escapeHTML(u[2])+'</p><p>'+escapeHTML(u[1])+'</p><p class="mini">Kendi cevabının gramer ve anlam bakımından doğru olup olmadığını değerlendir. Bu otomatik doğrulama değildir.</p></div><div class="actions"><button class="primary" id="selfRight">Cevabım doğru</button><button class="secondary" id="selfFix">Tekrar deneyeceğim</button></div>';
-  $("checkUnit").disabled=true;
-  $("selfRight").onclick=()=>{state.xp+=5;state.history.unshift({when:new Date().toLocaleString("tr-TR"),type:step.kind,question:step.q,answer,correct:null,help:false});goNext(false)};
-  $("selfFix").onclick=()=>{progress.checked=false;save();renderUnit()}
+ let textValue=current.kind==="choice"?(selected<0?"":current.o[selected]):$("unitInput").value.trim();
+ if(!textValue){$("unitResponse").textContent="Önce cevap ver.";return}
+ p.tries++;
+ if(current.kind==="choice"||current.kind==="cloze"){
+  const correct=current.kind==="choice"?selected===current.correct:norm(textValue)===norm(current.answer);
+  if(!correct){state.history.unshift({when:new Date().toLocaleString("tr-TR"),type:"unit-mistake",question:current.q,answer:textValue,correct:false});save();$("unitResponse").innerHTML='<div class="notice warn"><b>Henüz değil, tekrar dene.</b><p>'+escapeHTML(current.lesson)+'</p></div>';return}
+  $("checkUnit").disabled=true;$("unitResponse").innerHTML='<div class="notice"><b>Doğru!</b><p>'+escapeHTML(current.example||current.answer)+'</p></div><button class="primary" id="nextDrill">Devam →</button>';$("nextDrill").onclick=()=>next(!hintUsed);return
+ }
+ $("checkUnit").disabled=true;$("unitResponse").innerHTML='<div class="notice"><b>Örnek İngilizce:</b><p>'+escapeHTML(current.answer)+'</p><small>Farklı doğru cevaplar mümkündür. Burada otomatik anlam kontrolü henüz yok.</small></div><div class="actions"><button class="primary" id="selfDone">Cevabımı karşılaştırdım</button><button class="secondary" id="tryAgain">Bir daha dene</button></div>';
+ $("selfDone").onclick=()=>{state.history.unshift({when:new Date().toLocaleString("tr-TR"),type:current.kind,question:current.q,answer:textValue,correct:null});next(false)};
+ $("tryAgain").onclick=()=>renderUnit()
  }
 }
 
