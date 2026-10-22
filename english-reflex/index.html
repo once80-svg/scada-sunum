@@ -105,9 +105,37 @@ $("hint").onclick=()=>{looked=true;$("help").checked=true;$("feedback").innerHTM
 $("submit").onclick=()=>{if(t.options){if(choice<0){$("feedback").textContent="Bir seçenek seç.";return}finish(choice===t.correct);return}
 let ans=$("answer").value.trim();if(!ans){$("feedback").textContent="Önce cevap yaz.";return}
 let misses=t.keys.filter(k=>!norm(ans).includes(norm(k)));let maybe=misses.length===0;if(t.type==="word"){finish(norm(ans)===norm(t.a));return}
-if(t.type==="speak"||t.type==="write"){$("feedback").innerHTML='<div class="notice"><b>Otomatik anahtar kontrolü:</b> '+(maybe?"Anahtar ifadeler mevcut.":"Eksik olabilecekler: "+escapeHTML(misses.join(", ")))+'<p><b>Örnek cevap:</b> '+escapeHTML(t.a)+'</p><p>Bu yalnızca yaklaşık kontroldür. Farklı doğru cümleler mümkündür; grameri otomatik doğrulayamam.</p><div class="actions"><button class="primary" id="yes">Cevabım anlam ve gramer olarak doğru</button><button class="secondary" id="no">Eksiklerim var, tekrar edeyim</button></div></div>';$("yes").onclick=()=>finish(true);$("no").onclick=()=>finish(false);$("submit").disabled=true}
+if(t.type==="speak"||t.type==="write"){$("feedback").innerHTML='<div class="notice"><b>Otomatik anahtar kontrolü:</b> '+(maybe?"Anahtar ifadeler mevcut.":"Eksik olabilecekler: "+escapeHTML(misses.join(", ")))+'<p><b>Örnek cevap:</b> '+escapeHTML(t.a)+'</p><p>Bu yalnızca yaklaşık kontroldür. Farklı doğru cümleler mümkündür; grameri otomatik doğrulayamam.</p><div id="localGrammar"></div><div class="actions"><button class="secondary" id="checkGrammar">🔎 Grameri cihazımda kontrol et</button><button class="secondary" id="externalGrammar">🌐 İsteğe bağlı LanguageTool kontrolü</button></div><div id="grammarResult"></div><div class="actions"><button class="primary" id="yes">Cevabım anlam ve gramer olarak doğru</button><button class="secondary" id="no">Eksiklerim var, tekrar edeyim</button></div></div>';$("checkGrammar").onclick=()=>{let issues=basicGrammarHints(ans,t);$("grammarResult").innerHTML='<div class="notice">'+(issues.length?'<b>Olası gramer sorunları:</b><p>'+issues.map(escapeHTML).join('<br>')+'</p>':'Açık bir kural hatası yakalanmadı. Bu, cümlenin doğru olduğunu kanıtlamaz.')+'</div>'};$("externalGrammar").onclick=()=>checkViaLanguageTool(ans);$("yes").onclick=()=>finish(true);$("no").onclick=()=>finish(false);$("submit").disabled=true}
 };
 }
+
+function basicGrammarHints(sentence,task){
+ const s=" "+norm(sentence)+" ",h=[];
+ if(/\bhow (?:use|test|install|check|operate|fix|set|replace)\b/.test(s))h.push("how to + fiil: how to use / how to test");
+ if(/\b(?:two|three|four|five) plc\b/.test(s))h.push("Sayıdan sonra çoğul: two PLCs / three PLCs");
+ if(/\b(?:i|we|you|they) (?:working|going|checking|installing)\b/.test(s))h.push("Şimdiki zaman: am/is/are + -ing");
+ if(/\b(?:he|she|it) (?:are|have)\b/.test(s))h.push("He/she/it için is / has biçimini kontrol et.");
+ if(/\binvestigated of\b/.test(s))h.push("investigated the cause of ... (investigated of değil)");
+ if(/\bexplained (?:the )?(?:operator|technician|manager)\b/.test(s))h.push("explained ... to the operator; show the operator ...");
+ if(/\b(?:checked|tested) wiring them\b/.test(s))h.push("wiring them yerine their wiring / their connections kullan.");
+ if(/\bnew (?:two|three|four)\b/.test(s))h.push("Sıra: three new sensors");
+ if(task?.q?.includes("Dün")&&!s.includes("yesterday"))h.push("Türkçe görevdeki 'dün' için yesterday eksik olabilir.");
+ if(task?.q?.includes("bugün")&&!s.includes("today"))h.push("Türkçe görevdeki 'bugün' için today eksik olabilir.");
+ return h
+}
+async function checkViaLanguageTool(answer){
+ const out=$("grammarResult");if(!out)return;
+ const allow=confirm("Cümleni LanguageTool'un ücretsiz genel sunucusuna göndermek istiyor musun? Bu kontrolde metnin üçüncü tarafça işlenir; kişisel veya gizli bilgi gönderme. Dilbilgisi kontrolü anlam doğruluğunu garanti etmez.");
+ if(!allow)return;out.textContent="İstek gönderiliyor...";
+ try{const payload=new URLSearchParams({text:answer,language:"en-US"});
+ const resp=await fetch("https://api.languagetool.org/v2/check",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:payload});
+ if(!resp.ok)throw Error("HTTP "+resp.status);
+ const data=await resp.json();const matches=(data.matches||[]).slice(0,8);
+ if(!matches.length){out.innerHTML='<div class="notice">LanguageTool belirgin bir gramer/yazım hatası bildirmedi. Cümlenin anlam bakımından doğru olduğu kesinleşmez.</div>';return}
+ out.innerHTML='<div class="notice warn"><b>LanguageTool önerileri:</b><p>'+matches.map(x=>escapeHTML(x.message)+" → "+escapeHTML((x.replacements||[]).slice(0,2).map(v=>v.value).join(" / "))).join("<br><br>")+'</p><small>Otomatik öneriler yanılabilir; önce anlamı kontrol et.</small></div>'
+ }catch(e){out.innerHTML='<div class="notice warn">Ücretsiz dilbilgisi hizmetine erişilemedi (tarayıcı/CORS, kota veya ağ engeli olabilir). Yerel kontrolü kullanabilirsin.</div>'}
+}
+
 function renderWords(){let due=dueItems();let html='<h2>🧠 Kelime hafızası</h2><p class="muted">İlk doğru cevap öğrenildi sayılmaz. Aralıklar 1 → 3 → 7 → 14 → 30 gün. Hatalı veya yardımlı cevap sıfırlar.</p><p><b>'+due.length+' kelime</b> bugün tekrara hazır.</p>';
 html+=words.map(w=>{let s=state.reviews[w[0]];return '<div class="deckrow"><div><b>'+w[0]+'</b> · '+w[1]+'<br><small>'+w[2]+'</small></div><div class="mini">'+(s?'✓ '+s.success+' tekrar<br>'+s.due:'Yeni')+'</div></div>'}).join("");$("main").innerHTML=html}
 function renderGrammar(){let html='<h2>📖 Kısa gramer rehberi</h2><p class="muted">Her başlık: kural + kolay hatırlama triki + örnek. Uzun ders yok.</p>';html+=grammar.map(g=>'<details><summary>'+escapeHTML(g.title)+'</summary><p>'+escapeHTML(g.rule)+'</p><p><b>Trik:</b> '+escapeHTML(g.trick)+'</p><p>✅ '+escapeHTML(g.ok)+'</p><p>❌ '+escapeHTML(g.bad)+'</p></details>').join("");$("main").innerHTML=html}
