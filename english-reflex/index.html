@@ -4,7 +4,7 @@
 :root{font:16px system-ui,-apple-system,Segoe UI,sans-serif;color:#e9f0ff;background:#0b1120}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 90% 0%,#1c3b6355,transparent 55%),#0b1120;min-height:100vh}button,textarea,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.48;cursor:not-allowed}.wrap{max-width:850px;padding:22px 17px 90px;margin:auto}header,.line{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}h1{margin:5px 0;font-size:1.75rem}h2{font-size:1.3rem;margin:0 0 15px}p{line-height:1.6}small,.muted{color:#9caecb}.panel{background:#151f33;border:1px solid #2d3a51;border-radius:20px;padding:22px;margin-top:16px}.tag{color:#c8ddff;background:#273c60;border-radius:50px;padding:5px 10px;font-size:12px;display:inline-block}.tabs{display:flex;gap:7px;overflow-x:auto;margin:20px 0 10px;padding:3px 0}.tabs button,.secondary{border:1px solid #354560;background:#1a2942;color:#d9e7ff;border-radius:11px;padding:10px 13px;white-space:nowrap}.tabs button.active{background:#376bd2;color:white;border-color:#477de8}.primary{background:#4b7ef5;color:#fff;border:0;padding:13px 18px;border-radius:13px;font-weight:700}.secondary:hover,.primary:hover{filter:brightness(1.12)}.progress{height:11px;border-radius:12px;background:#28364e;overflow:hidden}.progress>div{height:100%;background:linear-gradient(90deg,#2ec7a0,#5085ff)}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.stat{background:#202e46;padding:13px;border-radius:13px;text-align:center}.stat b{display:block;font-size:1.2rem}textarea{background:#0e1729;border:1px solid #415577;color:#f5f7ff;width:100%;border-radius:12px;padding:14px;min-height:95px;resize:vertical}textarea:focus{outline:2px solid #729bff}.big{font-size:1.28rem;font-weight:700;line-height:1.55;margin:16px 0}.choices{display:grid;gap:9px}.choices button{width:100%;text-align:left;color:#eaf2ff;background:#22324e;border:1px solid #425572;border-radius:12px;padding:12px}.choices button.active{border-color:#6ea5ff;background:#294d7b}.notice{border-left:3px solid #61c5ae;padding:11px 14px;margin-top:16px;background:#1b3540;border-radius:5px;line-height:1.5}.warn{border-color:#efba65;background:#403321}details{border:1px solid #344760;border-radius:12px;padding:12px;margin:12px 0}summary{cursor:pointer;font-weight:650}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}input[type=checkbox]{accent-color:#6c9dff}.mini{font-size:13px}.pill{padding:6px 10px;background:#233650;border-radius:30px}.deckrow{display:flex;justify-content:space-between;padding:13px 0;border-bottom:1px solid #354058;gap:14px}.deckrow:last-child{border:0}.meter{width:100%}.hide{display:none}@media(max-width:550px){.wrap{padding:16px 12px 70px}.panel{padding:17px}.stats{gap:5px}.stat{padding:10px 5px}.big{font-size:1.14rem}}
 </style></head><body><main class="wrap">
 <header><div><small>PERSONAL ENGLISH TRAINER · 3.0</small><h1>⚡ English Reflex</h1><small>Tek ekranda tek görev. Refleks oluştur, kalıcı öğren.</small></div><span class="tag" id="streak">🔥 0 günlük seri</span></header>
-<nav class="tabs" id="tabs"><button class="active" data-tab="train">🎯 Bugün</button><button data-tab="survey">📚 10.000 kelime</button><button data-tab="words">🧠 Tekrar</button><button data-tab="grammar">📖 Gramer</button><button data-tab="plan">📊 İlerleme</button></nav>
+<nav class="tabs" id="tabs"><button class="active" data-tab="train">🎯 Bugün</button><button data-tab="route">🗺️ Öğrenme yolu</button><button data-tab="survey">📚 10.000 kelime</button><button data-tab="words">🧠 Tekrar</button><button data-tab="grammar">📖 Gramer</button><button data-tab="plan">📊 İlerleme</button></nav>
 <section class="panel" id="status"><div class="line"><b id="lvl">Seviye 8</b><b id="xp">795 XP</b></div><div class="progress" style="margin:12px 0"><div id="bar" style="width:95%"></div></div><div class="stats"><div class="stat"><b id="dueN">0</b><small>Tekrar zamanı</small></div><div class="stat"><b id="doneN">0</b><small>Tamamlanan</small></div><div class="stat"><b id="wordN">0</b><small>Çalışılan kelime</small></div></div></section>
 <section class="panel" id="main"></section>
 <p class="muted mini">🔒 Verilerin bu tarayıcıda saklanır; başka cihazla otomatik senkronize edilmez. Speaking: mikrofon desteği tarayıcıya bağlıdır. Uygulama AI ile notlandırmaz; cevaplarını örneklerle karşılaştırır, dürüst özdeğerlendirme ister.</p>
@@ -142,7 +142,101 @@ function renderGrammar(){let html='<h2>📖 Kısa gramer rehberi</h2><p class="m
 function renderPlan(){let r=state.history;let html='<h2>📊 Gelişim ve çalışma planı</h2><p>20 dakikalık tek oturum: kelime, konuşma, yazma, okuma ve kısa gramer görevleri. İçerik hedefi %70 günlük yaşam, %30 teknik; tekrar zamanı gelen kelimeler önceliklidir.</p><div class="notice">İngilizce düşünme triki: Bir nesneye bak, önce İngilizce adını söyle; sonra ne yaptığını 1 basit İngilizce cümleyle anlat. Mükemmel cümle kurmaya çalışma.</div><h3>Son çalışmalar</h3>';html+=r.length?r.slice(0,15).map(x=>'<div class="deckrow"><div>'+escapeHTML(x.question)+'<br><small>'+escapeHTML(x.when)+'</small></div><b>'+(x.correct?'✓':'↻')+'</b></div>').join(""):'<p>Henüz antrenman yapılmadı.</p>';html+='<div class="actions"><button class="secondary" id="export">⬇️ İlerlememi yedekle</button><button class="secondary" id="import">⬆️ Yedeği geri yükle</button><input type="file" id="upload" accept=".json,application/json" hidden></div>';$("main").innerHTML=html;$("export").onclick=()=>{let blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="english-reflex-progress.json";a.click();URL.revokeObjectURL(u)};$("import").onclick=()=>$("upload").click();$("upload").onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());if(!Number.isFinite(d.xp)||!Number.isFinite(d.done)||typeof d.reviews!=="object")throw Error("Geçersiz dosya");if(!confirm("Mevcut ilerleme yedekle değiştirilsin mi?"))return;state=d;save();render()}catch(e){alert("Geçerli ilerleme dosyası okunamadı.")}}}
 function homeUI(){let completed=state.day.completed, q=quota(),pct=Math.min(100,Math.round(completed/q*100));return '<div class="line"><span class="tag">20 dakika · %70 günlük / %30 teknik</span><span class="tag">Kişisel çalışma</span></div><h2 style="margin-top:20px">Ready to think in English?</h2><p class="muted">Bugün ne çalışacağını düşünme. Uygulama sıradaki görevi seçsin.</p><div class="notice"><b>Bugünkü hedef</b><div class="progress" style="margin:12px 0"><div style="width:'+pct+'%"></div></div><small>'+completed+' / '+q+' görev · Ortalama 20 dakikalık oturum</small><p>🧠 Önce hatırlama · 🎙️ Sonra konuşma · ✍️ Yazma · 📚 Okuma ve gramer</p></div><p>Yanlışlar ve yardımlı cevaplar tekrar listesine döner.</p><button class="primary" id="startWorkout" style="width:100%">▶ Antrenmana başla</button>'}
 function finishUI(){return '<h2>🎉 Bugünkü oturumu bitirdin!</h2><p>Kelime ve gramer tekrarların sonraki oturumlarda devam edecek.</p><button class="primary" id="another">Bir oturum daha yap</button>'}
-function render(){refreshDay();stats();document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));if(tab==="train")renderTrain();if(tab==="survey")renderSurvey();if(tab==="words")renderWords();if(tab==="grammar")renderGrammar();if(tab==="plan")renderPlan()}
+
+const placement=[
+{tier:"A1",q:"I ___ a student.",o:["am","is","are","be"],a:0,why:"I am."},
+{tier:"A1",q:"She ___ coffee every morning.",o:["drink","drinks","drinking","drank"],a:1,why:"She drinks: üçüncü tekil kişi."},
+{tier:"A1",q:"There ___ two books on the table.",o:["is","be","are","was"],a:2,why:"There are + çoğul."},
+{tier:"A2",q:"We ___ to the cinema yesterday.",o:["go","goes","went","going"],a:2,why:"Yesterday → past simple: went."},
+{tier:"A2",q:"I have lived here ___ 2021.",o:["for","since","during","from"],a:1,why:"Since + başlangıç tarihi."},
+{tier:"A2",q:"This bag is ___ than that one.",o:["heavy","heavier","heaviest","more heavy"],a:1,why:"Heavier: comparative."},
+{tier:"B1",q:"If it rains, we ___ at home.",o:["stay","stayed","will stay","would stay"],a:2,why:"First conditional: if + present, will."},
+{tier:"B1",q:"The machine ___ last Monday.",o:["repaired","was repaired","has repairing","is repair"],a:1,why:"Passive past: was repaired."},
+{tier:"B1",q:"I look forward to ___ from you.",o:["hear","hearing","heard","be hear"],a:1,why:"Look forward to + -ing."},
+{tier:"B2",q:"If I ___ more time, I would travel.",o:["have","had","will have","having"],a:1,why:"Second conditional: if + past, would."},
+{tier:"B2",q:"By the time we arrived, they ___ dinner.",o:["finish","have finished","had finished","were finish"],a:2,why:"Past perfect: had finished."},
+{tier:"B2",q:"Despite ___ tired, she continued working.",o:["be","been","being","was"],a:2,why:"Despite + noun / -ing."},
+{tier:"C1",q:"Hardly ___ the meeting begun when the alarm rang.",o:["had","has","was","did"],a:0,why:"Hardly had ... when ..."},
+{tier:"C1",q:"Had I known earlier, I ___ you.",o:["call","will call","would have called","had called"],a:2,why:"Inverted third conditional."},
+{tier:"C1",q:"The proposal, ___ merits are considerable, needs review.",o:["which","whose","whom","that"],a:1,why:"Whose: aitlik."}
+];
+const courses=[
+{level:"A1",units:[
+["Tanışma ve be fiili","I am, you are, he is","I am ready.","I ___ ready.",["am","is","are"],0,"Adın, mesleğin ve nasıl hissettiğini anlat."],
+["Günlük rutin ve geniş zaman","I work; she works","She works every day.","She ___ every day.",["work","works","working"],1,"Sabah neler yaptığını söyle."],
+["Eşyalar, a/an/the ve çoğullar","a sensor / the sensor / two sensors","There are two cups.","There ___ two cups.",["is","are","was"],1,"Odanı üç basit cümleyle tarif et."]]},
+{level:"A2",units:[
+["Geçmiş zaman ve zaman ifadeleri","yesterday; last week; went; fixed","I went shopping yesterday.","I ___ shopping yesterday.",["go","went","going"],1,"Dün ne yaptığını anlat."],
+["Gelecek planları","going to / will","I am going to cook tonight.","I ___ going to cook.",["am","was","be"],0,"Hafta sonu planlarını anlat."],
+["Karşılaştırmalar ve bağlaçlar","bigger, cheaper, because","This café is cheaper.","This café is ___.",["cheap","cheaper","cheapest"],1,"İki restoranı karşılaştır."]]},
+{level:"B1",units:[
+["Present perfect ve since/for","I have worked here for five years.","I have ___ here for five years.",["work","worked","working"],1,"Deneyimini iki cümleyle anlat."],
+["Şart cümleleri","If it rains, I will stay home.","If it rains, I ___ stay home.",["would","will","did"],1,"Yağmur yağarsa ne yapacağını anlat."],
+["Anlatma, talimat ve edilgen yapı","how to use; was repaired","I showed her how to use it.","I showed her how ___ use it.",["to","for","do"],0,"Bir cihazı nasıl kullanacağını anlat."]]},
+{level:"B2",units:[
+["Second conditional","If I had time, I would travel.","If I ___ time, I would travel.",["have","had","will have"],1,"Başka ülkede yaşasaydın ne yapardın?"],
+["Past perfect","I had finished before she arrived.","I ___ finished before she arrived.",["have","had","was"],1,"İki geçmiş olayı sırayla anlat."],
+["İleri bağlaçlar","although, despite, however","Despite being tired, I went out.","Despite ___ tired, I went out.",["being","be","was"],0,"Zor bir duruma rağmen yaptığın bir şeyi anlat."]]},
+{level:"C1",units:[
+["Inversion","Hardly had we started when it stopped.","Hardly ___ we started...",["did","had","were"],1,"Beklenmedik iki olayı anlat."],
+["Advanced conditionals","Had I known, I would have helped.","Had I ___, I would have helped.",["know","known","knew"],1,"Geçmişte farklı yapacağın bir şeyi anlat."],
+["Hassas anlatım ve nüans","whose, whereas, nevertheless","A colleague whose advice I trust...","A colleague ___ advice...",["who","whose","which"],1,"İki fikrin ince farkını açıkla."]]}
+];
+state.road=state.road||{placement:null,step:0,answers:[],unitProgress:{},currentUnit:null,practiceIndex:0,finishedUnits:{}};
+function selectedLevel(){return state.road.placement?.level||"A1"}
+function positionOfLevel(x){return ["A1","A2","B1","B2","C1"].indexOf(x)}
+function currentRoadUnit(){let r=state.road;return courses.flatMap(c=>c.units.map((u,i)=>({id:c.level+"-"+i,level:c.level,index:i,u}))).find(x=>x.id===r.currentUnit)}
+function renderRoute(){
+ const r=state.road;if(!r.placement){renderPlacement();return}
+ if(r.currentUnit){renderUnit();return}
+ let html='<div class="line"><h2>🗺️ İngilizce öğrenme yolu</h2><span class="tag">Tahmini '+selectedLevel()+'</span></div><p class="muted">Her ünitede: çok kısa ders → örnek → 5 alıştırma → sonraki günlerde tekrar. %70 günlük yaşam / %30 teknik hedefin korunur.</p>';
+ courses.forEach(c=>{let unlocked=positionOfLevel(c.level)<=positionOfLevel(selectedLevel())||c.units.some((u,i)=>r.finishedUnits[c.level+"-"+i]);html+='<div class="panel" style="margin-top:12px"><div class="line"><b>'+c.level+' · '+(unlocked?"Çalışmaya açık":"İleri seviye")+'</b><span class="tag">'+c.units.length+' ünite</span></div>';c.units.forEach((u,i)=>{let id=c.level+"-"+i,done=r.finishedUnits[id];html+='<div class="deckrow"><div><b>'+escapeHTML(u[0])+'</b><br><small>'+escapeHTML(u[1])+'</small></div><button class="secondary unitStart" data-id="'+id+'">'+(done?"Tekrar et":"Çalış")+'</button></div>'});html+='</div>'});
+ html+='<div class="actions"><button class="secondary" id="retake">Seviye testini yeniden yap</button></div>';
+ $("main").innerHTML=html;document.querySelectorAll(".unitStart").forEach(b=>b.onclick=()=>{r.currentUnit=b.dataset.id;r.practiceIndex=0;save();renderRoute()});
+ $("retake").onclick=()=>{if(!confirm("Yalnızca yerleştirme testin sıfırlansın mı? XP ve ünite geçmişi korunur."))return;r.placement=null;r.step=0;r.answers=[];save();renderRoute()}
+}
+function renderPlacement(){
+ let r=state.road,idx=r.step;if(idx>=placement.length){finishPlacement();return}
+ let t=placement[idx],html='<div class="line"><h2>🎯 Seviye belirleme</h2><span class="tag">'+(idx+1)+' / '+placement.length+'</span></div><div class="progress"><div style="width:'+Math.round(idx/placement.length*100)+'%"></div></div><p class="muted">Kısa adaptif başlangıç testi. Bu yalnızca gramer tabanlı ilk tahmindir; gerçek CEFR sertifikası veya konuşma ölçümü değildir.</p><div class="big">'+escapeHTML(t.q)+'</div><div class="choices">'+t.o.map((o,i)=>'<button class="placeOption" data-choice="'+i+'">'+escapeHTML(o)+'</button>').join("")+'</div><p class="mini muted">Sözlüğe bakmadan yanıtla. Emin değilsen tahmin edebilirsin.</p>';
+ $("main").innerHTML=html;
+ document.querySelectorAll(".placeOption").forEach(b=>b.onclick=()=>{r.answers.push(+b.dataset.choice===t.a);r.step++;save();renderRoute()})
+}
+function finishPlacement(){
+ const r=state.road,levels=["A1","A2","B1","B2","C1"],scores=levels.map((l,i)=>({l,correct:r.answers.slice(i*3,i*3+3).filter(Boolean).length}));
+ let result="A1";for(let i=0;i<4;i++){if(scores[i].correct>=2)result=levels[i+1];else break}
+ if(scores[4].correct<2&&result==="C1")result="B2";
+ r.placement={level:result,scores,date:dateKey()};save();renderRoute()
+}
+function renderUnit(){
+ let r=state.road,item=currentRoadUnit();if(!item){r.currentUnit=null;save();renderRoute();return}
+ let u=item.u,phase=r.practiceIndex;let prompts=[
+ {type:"read",q:"Kuralı ve örneği incele: "+u[1],answer:u[2]},
+ {type:"choice",q:u[3],o:u[4],correct:u[5],answer:u[2]},
+ {type:"recall",q:"Örnek cümleyi hatırlayarak yaz. İpucu: "+u[0],answer:u[2]},
+ {type:"speak",q:"İngilizce sesli söyle: "+u[6],answer:u[2]},
+ {type:"choice",q:u[3],o:u[4],correct:u[5],answer:u[2]},
+ {type:"write",q:"Kendi hayatından bu kuralla yeni bir İngilizce cümle yaz.",answer:u[2]}
+ ];
+ const t=prompts[Math.min(phase,prompts.length-1)];
+ let html='<div class="line"><span class="tag">'+item.level+' · Ünite '+(item.index+1)+'</span><button class="secondary" id="backRoad">← Yol haritası</button></div><h2 style="margin-top:16px">'+escapeHTML(u[0])+'</h2><div class="progress"><div style="width:'+Math.round(phase/prompts.length*100)+'%"></div></div>';
+ if(phase===0)html+='<div class="notice"><b>Mini gramer dersi</b><p>'+escapeHTML(u[1])+'</p><p>✅ '+escapeHTML(u[2])+'</p><small>Önce bu kalıbı yüksek sesle bir kez söyle.</small></div>';
+ else {html+='<p class="big">'+escapeHTML(t.q)+'</p>';
+ if(t.type==="choice")html+='<div class="choices">'+t.o.map((x,i)=>'<button class="unitChoice" data-i="'+i+'">'+escapeHTML(x)+'</button>').join("")+'</div>';
+ else html+='<textarea id="unitAnswer" placeholder="'+(t.type==="speak"?"Önce sesli söyle, ardından yaz...":"Cevabın...")+'"></textarea><div class="actions"><button class="secondary" id="unitHear">🔊 Örnek sesi (yardım)</button></div>';
+ html+='<div id="unitFeedback"></div>'}
+ html+='<div class="actions"><button class="primary" id="unitNext">'+(phase===0?"Pratiğe başla":phase===prompts.length-1?"Üniteyi tamamla":"Kontrol et / İlerle")+'</button></div>';
+ $("main").innerHTML=html;$("backRoad").onclick=()=>{r.currentUnit=null;save();renderRoute()};
+ if($("unitHear"))$("unitHear").onclick=()=>{speak(u[2]);$("unitFeedback").textContent="Örneği duydun; hatırlama puanı için yardım aldın."};
+ let picked=-1;document.querySelectorAll(".unitChoice").forEach(b=>b.onclick=()=>{picked=+b.dataset.i;document.querySelectorAll(".unitChoice").forEach(x=>x.classList.toggle("active",x===b))});
+ $("unitNext").onclick=()=>{if(phase>0){if(t.type==="choice"&&picked<0){alert("Bir seçenek seç.");return}if(t.type!=="choice"&&!$("unitAnswer").value.trim()){alert("Cevabını yaz.");return}
+ if(t.type==="choice"){let ok=picked===t.correct;state.xp+=ok?10:5}
+ else{let value=$("unitAnswer").value;state.xp+=5;state.history.unshift({when:new Date().toLocaleString("tr-TR"),type:"unit",question:t.q,answer:value,correct:null,help:false})}
+ }
+ r.practiceIndex++;if(r.practiceIndex>=prompts.length){r.finishedUnits[item.id]=(r.finishedUnits[item.id]||0)+1;r.currentUnit=null;r.practiceIndex=0}
+ state.done++;save();renderRoute()}
+}
+
+function render(){refreshDay();stats();document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));if(tab==="train")renderTrain();if(tab==="route")renderRoute();if(tab==="survey")renderSurvey();if(tab==="words")renderWords();if(tab==="grammar")renderGrammar();if(tab==="plan")renderPlan()}
 
 const vocabURL="https://raw.githubusercontent.com/first20hours/google-10000-english/master/google-10000-english.txt";
 let vocabPool=[],currentVocabulary="";
