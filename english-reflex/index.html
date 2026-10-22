@@ -209,32 +209,53 @@ function finishPlacement(){
  r.placement={level:result,scores,date:dateKey()};save();renderRoute()
 }
 function renderUnit(){
- let r=state.road,item=currentRoadUnit();if(!item){r.currentUnit=null;save();renderRoute();return}
- let u=item.u,phase=r.practiceIndex;let prompts=[
- {type:"read",q:"Kuralı ve örneği incele: "+u[1],answer:u[2]},
- {type:"choice",q:u[3],o:u[4],correct:u[5],answer:u[2]},
- {type:"recall",q:"Örnek cümleyi hatırlayarak yaz. İpucu: "+u[0],answer:u[2]},
- {type:"speak",q:"İngilizce sesli söyle: "+u[6],answer:u[2]},
- {type:"choice",q:u[3],o:u[4],correct:u[5],answer:u[2]},
- {type:"write",q:"Kendi hayatından bu kuralla yeni bir İngilizce cümle yaz.",answer:u[2]}
+ const r=state.road,item=currentRoadUnit();if(!item){r.currentUnit=null;save();renderRoute();return}
+ const u=item.u,key=item.id;
+ r.unitState=r.unitState||{};let progress=r.unitState[key]||{phase:0,correct:0,tries:0,checked:false,choice:-1};
+ const phases=[
+ {kind:"lesson",label:"Öğren",q:u[1]},
+ {kind:"choice",label:"Anla",q:u[3]},
+ {kind:"cloze",label:"Hatırla",q:u[3]},
+ {kind:"recall",label:"Yaz",q:"Örneği hafızandan yaz: "+u[0]},
+ {kind:"speaking",label:"Konuş",q:u[6]}
  ];
- const t=prompts[Math.min(phase,prompts.length-1)];
- let html='<div class="line"><span class="tag">'+item.level+' · Ünite '+(item.index+1)+'</span><button class="secondary" id="backRoad">← Yol haritası</button></div><h2 style="margin-top:16px">'+escapeHTML(u[0])+'</h2><div class="progress"><div style="width:'+Math.round(phase/prompts.length*100)+'%"></div></div>';
- if(phase===0)html+='<div class="notice"><b>Mini gramer dersi</b><p>'+escapeHTML(u[1])+'</p><p>✅ '+escapeHTML(u[2])+'</p><small>Önce bu kalıbı yüksek sesle bir kez söyle.</small></div>';
- else {html+='<p class="big">'+escapeHTML(t.q)+'</p>';
- if(t.type==="choice")html+='<div class="choices">'+t.o.map((x,i)=>'<button class="unitChoice" data-i="'+i+'">'+escapeHTML(x)+'</button>').join("")+'</div>';
- else html+='<textarea id="unitAnswer" placeholder="'+(t.type==="speak"?"Önce sesli söyle, ardından yaz...":"Cevabın...")+'"></textarea><div class="actions"><button class="secondary" id="unitHear">🔊 Örnek sesi (yardım)</button></div>';
- html+='<div id="unitFeedback"></div>'}
- html+='<div class="actions"><button class="primary" id="unitNext">'+(phase===0?"Pratiğe başla":phase===prompts.length-1?"Üniteyi tamamla":"Kontrol et / İlerle")+'</button></div>';
- $("main").innerHTML=html;$("backRoad").onclick=()=>{r.currentUnit=null;save();renderRoute()};
- if($("unitHear"))$("unitHear").onclick=()=>{speak(u[2]);$("unitFeedback").textContent="Örneği duydun; hatırlama puanı için yardım aldın."};
- let picked=-1;document.querySelectorAll(".unitChoice").forEach(b=>b.onclick=()=>{picked=+b.dataset.i;document.querySelectorAll(".unitChoice").forEach(x=>x.classList.toggle("active",x===b))});
- $("unitNext").onclick=()=>{if(phase>0){if(t.type==="choice"&&picked<0){alert("Bir seçenek seç.");return}if(t.type!=="choice"&&!$("unitAnswer").value.trim()){alert("Cevabını yaz.");return}
- if(t.type==="choice"){let ok=picked===t.correct;state.xp+=ok?10:5}
- else{let value=$("unitAnswer").value;state.xp+=5;state.history.unshift({when:new Date().toLocaleString("tr-TR"),type:"unit",question:t.q,answer:value,correct:null,help:false})}
+ const step=phases[Math.min(progress.phase,phases.length-1)];
+ const completed=progress.phase>=phases.length;
+ let html='<div class="line"><span class="tag">'+item.level+' · '+escapeHTML(step.label)+'</span><button class="secondary" id="exitUnit">← Yolum</button></div><h2 style="margin-top:16px">'+escapeHTML(u[0])+'</h2><div class="progress" aria-label="Ünite ilerlemesi"><div style="width:'+Math.round(progress.phase/phases.length*100)+'%"></div></div>';
+ if(completed){
+  html+='<div class="notice"><h2>Ünite tamamlandı</h2><p>Kontrol edilen cevaplarda '+progress.correct+' başarılı adım. Yazma ve konuşma cevaplarını kendin değerlendirdin; bu henüz bağımsız dil yeterliliği kanıtı değil.</p><p>Konuyu başka gün farklı cümlelerde tekrar edeceğiz.</p></div><button class="primary" id="closeUnit">Öğrenme yoluna dön</button>';
+ }else if(step.kind==="lesson"){
+  html+='<div class="notice"><b>30 saniyelik kural</b><p>'+escapeHTML(u[1])+'</p><p>✅ '+escapeHTML(u[2])+'</p><small>Örneği önce sesli oku. Ardından ipucusuz alıştırmalara geç.</small></div><button class="primary" id="nextUnitStep">Anladım, pratiğe geç →</button>';
+ }else{
+  html+='<p class="big">'+escapeHTML(step.q)+'</p>';
+  if(step.kind==="choice")html+='<div class="choices">'+u[4].map((x,i)=>'<button class="unitChoice" data-i="'+i+'">'+escapeHTML(x)+'</button>').join("")+'</div>';
+  else html+='<textarea id="unitAnswer" placeholder="'+(step.kind==="cloze"?"Yalnızca eksik kelimeyi yaz...":"İngilizce cevabını kendin oluştur...")+'"></textarea>';
+  if(step.kind==="speaking")html+='<p class="muted mini">Önce yüksek sesle kendi cümleni kur, ardından yaz. Mikrofon zorunlu değil.</p>';
+  if(!progress.checked)html+='<button class="primary" id="checkUnit" style="width:100%;margin-top:14px">Cevabımı kontrol et</button>';
+  html+='<div id="unitFeedback"></div>';
  }
- r.practiceIndex++;if(r.practiceIndex>=prompts.length){r.finishedUnits[item.id]=(r.finishedUnits[item.id]||0)+1;r.currentUnit=null;r.practiceIndex=0}
- state.done++;save();renderRoute()}
+ $("main").innerHTML=html;
+ $("exitUnit").onclick=()=>{r.currentUnit=null;save();renderRoute()};
+ if(completed){$("closeUnit").onclick=()=>{r.currentUnit=null;delete r.unitState[key];save();renderRoute()};return}
+ const goNext=(earned)=>{progress.correct+=earned?1:0;progress.phase++;progress.checked=false;progress.choice=-1;r.unitState[key]=progress;r.practiceIndex=progress.phase;state.done++;if(progress.phase>=phases.length){r.finishedUnits[key]=(r.finishedUnits[key]||0)+1;state.history.unshift({when:new Date().toLocaleString("tr-TR"),type:"unit",question:u[0],correct:progress.correct>=3,help:false})}save();renderUnit()};
+ if(step.kind==="lesson"){$("nextUnitStep").onclick=()=>goNext(false);return}
+ let picked=-1;document.querySelectorAll(".unitChoice").forEach(b=>b.onclick=()=>{picked=Number(b.dataset.i);document.querySelectorAll(".unitChoice").forEach(x=>x.classList.toggle("active",x===b))});
+ $("checkUnit").onclick=()=>{
+  if(step.kind==="choice"&&picked<0){$("unitFeedback").textContent="Önce seçenek seç.";return}
+  const answer=step.kind==="choice"?u[4][picked]:$("unitAnswer").value.trim();
+  if(!answer){$("unitFeedback").textContent="Önce cevabını yaz.";return}
+  progress.tries++;let feedback=$("unitFeedback");
+  if(step.kind==="choice"||step.kind==="cloze"){
+   let correct=step.kind==="choice"?picked===u[5]:norm(answer)===norm(u[4][u[5]]);
+   if(!correct){feedback.innerHTML='<div class="notice warn"><b>Bir kez daha dene.</b><p>Kural: '+escapeHTML(u[1])+'</p><p class="mini">Hata yaptığın için bu adım otomatik tamamlanmaz.</p></div>';state.history.unshift({when:new Date().toLocaleString("tr-TR"),type:"unit-mistake",question:step.q,answer,correct:false,help:false});save();return}
+   feedback.innerHTML='<div class="notice"><b>Doğru!</b><p>'+escapeHTML(u[2])+'</p></div><button class="primary" id="advanceUnit">Devam et →</button>';
+   $("checkUnit").disabled=true;$("advanceUnit").onclick=()=>{state.xp+=10;goNext(true)};return
+  }
+  feedback.innerHTML='<div class="notice"><b>Örnek:</b><p>'+escapeHTML(u[2])+'</p><p>'+escapeHTML(u[1])+'</p><p class="mini">Kendi cevabının gramer ve anlam bakımından doğru olup olmadığını değerlendir. Bu otomatik doğrulama değildir.</p></div><div class="actions"><button class="primary" id="selfRight">Cevabım doğru</button><button class="secondary" id="selfFix">Tekrar deneyeceğim</button></div>';
+  $("checkUnit").disabled=true;
+  $("selfRight").onclick=()=>{state.xp+=5;state.history.unshift({when:new Date().toLocaleString("tr-TR"),type:step.kind,question:step.q,answer,correct:null,help:false});goNext(false)};
+  $("selfFix").onclick=()=>{progress.checked=false;save();renderUnit()}
+ }
 }
 
 
